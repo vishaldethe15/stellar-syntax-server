@@ -1,2 +1,2 @@
-const date = new Date(2022, 3, 1);
+const date = new Date();
 console.log(date);

@@ -1,7 +1,7 @@
 const Blog = require("../models/Blog");
 const { BadRequestError } = require("../errors");
 
-const blogsPerPage = 4;
+const blogsPerPage = 3;
 // get all Blogs
 const getAllBlogs = async (req, res) => {
   const { featured, page } = req.query;
@@ -9,6 +9,10 @@ const getAllBlogs = async (req, res) => {
   const pageNum = parseInt(page) || 0;
 
   const skip = pageNum * blogsPerPage;
+
+  const totalDocs = await Blog.countDocuments();
+
+  const totalPages = Math.ceil(totalDocs / blogsPerPage);
 
   const queryObj = {};
 
@@ -24,7 +28,7 @@ const getAllBlogs = async (req, res) => {
   if (!blogs) {
     throw new BadRequestError("No blogs found");
   } else {
-    res.status(200).json({ blogs, nBHits: blogs.length });
+    res.status(200).json({ blogs, nBHits: blogs.length, totalPages });
   }
 };
 
@@ -43,6 +47,10 @@ const getBlogsByCategories = async (req, res) => {
     queryObj.featured = featured === "true" && true;
   }
 
+  const totalDocs = await Blog.countDocuments(queryObj);
+
+  const totalPages = Math.ceil(totalDocs / blogsPerPage);
+
   const blogs = await Blog.find(queryObj)
     .sort({ createdAt: -1 })
     .skip((parseInt(page) - 1) * blogsPerPage)
@@ -52,7 +60,7 @@ const getBlogsByCategories = async (req, res) => {
     const customErr = new BadRequestError("No Blogs Found");
     res.status(customErr.statusCode).json(customErr.message);
   } else {
-    res.status(200).json({ blogs, nBHits: blogs.length });
+    res.status(200).json({ blogs, nBHits: blogs.length, totalPages });
   }
 };
 
